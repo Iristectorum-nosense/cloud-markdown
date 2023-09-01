@@ -1,0 +1,25 @@
+.file-list-container {
+  .file-list-item {
+    display: flex;
+    align-items: center;
+    height: 60px;
+
+    .edit-item .icon-button {
+      margin-left: 10px;
+    }
+
+    .item-click {
+      cursor: pointer;
+    }
+
+    .icon-button {
+      background: none;
+      border: none;
+    }
+
+    >div {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+}

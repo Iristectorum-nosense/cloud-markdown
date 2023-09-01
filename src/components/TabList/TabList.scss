@@ -1,0 +1,36 @@
+.tab-list-container {
+  .tab-list-item {
+    display: flex;
+    align-items: center;
+    width: auto;
+
+    .unsave-svg {
+      margin-left: 8px;
+    }
+
+    .close-svg {
+      margin-left: 8px;
+      visibility: hidden;
+    }
+
+    .nav-link:hover .close-svg,
+    .nav-link.active .close-svg {
+      visibility: visible;
+    }
+
+    .nav-link.unsave .close-svg {
+      // 未保存时不显示关闭
+      display: none;
+    }
+
+    .nav-link:hover.unsave .close-svg {
+      // 未保存时 hover 显示关闭
+      display: inline;
+    }
+
+    .nav-link:hover.unsave .unsave-svg {
+      // 未保存时 hover 不显示未保存
+      display: none;
+    }
+  }
+}

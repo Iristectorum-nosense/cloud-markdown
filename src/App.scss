@@ -1,0 +1,23 @@
+.App {
+  text-align: center;
+
+  .right {
+    background-color: antiquewhite;
+  }
+
+  .btn-add,
+  .btn-import {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .btn-add {
+    background-color: aquamarine;
+  }
+
+  .btn-import {
+    background-color: bisque;
+  }
+}
