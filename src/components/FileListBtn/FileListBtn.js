@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { AddFileSvg, ImportFileSvg } from '../../util/svg';
+import './FileListBtn.scss';
 
 FileListBtn.propTypes = {
   title: PropTypes.string,
@@ -14,8 +14,8 @@ export default function FileListBtn({ title, className, onBtnClick }) {
       type="button"
       onClick={onBtnClick}
     >
-      {title === "新建" && <AddFileSvg size={32} />}
-      {title === "导入" && <ImportFileSvg size={32} />}
+      {title === "新建" && <AddFileSvg size={24} />}
+      {title === "导入" && <ImportFileSvg size={24} />}
       {title}
     </button>
   )

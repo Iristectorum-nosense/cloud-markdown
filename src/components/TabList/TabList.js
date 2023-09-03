@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import classNameTrans from '../../util/classNameTrans';
 import { CloseSvg, UnsaveSvg } from '../../util/svg';
@@ -14,7 +13,7 @@ TabList.prototypes = {
 
 export default function TabList({ files, activeId, unsaveIds, onTabClick, onTabClose }) {
   return (
-    <ul className="nav nav-pills tab-list-container">
+    <ul className="nav nav-tabs tab-list-container">
       {
         files.map(file => {
           const unsaved = unsaveIds.includes(file.id);

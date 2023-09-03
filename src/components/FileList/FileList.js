@@ -7,43 +7,46 @@ import useKeyboard from '../../hooks/useKeyboard';
 FileList.propTypes = {
   files: PropTypes.array,
   onFileClick: PropTypes.func.isRequired,
-  onFileEdit: PropTypes.func.isRequired,
+  onTitleEdit: PropTypes.func.isRequired,
   onFileDelete: PropTypes.func.isRequired
 };
 
-export default function FileList({ files, onFileClick, onFileEdit, onFileDelete }) {
+export default function FileList({ files, onFileClick, onTitleEdit, onFileDelete }) {
   const [editId, setEditId] = useState(null);
-  const [editValue, setEditValue] = useState('');
+  const [titleValue, setTitleValue] = useState('');
   const enterKeyPress = useKeyboard(13);
   const escKeyPress = useKeyboard(27);
   const editRef = useRef(null);
 
-  const handleFileEdit = (file) => {
+  const handleTitleEdit = (file) => {
     setEditId(file.id);
-    setEditValue(file.title);
+    setTitleValue(file.title);
   }
 
-  const handleEditClose = () => {
+  const handleEditClose = (editItem) => {
     setEditId(null);
-    setEditValue('');
+    setTitleValue('');
+    if (editItem.isNew) {
+      onFileDelete(editItem.id);
+    }
   }
 
   const handleEditChange = (e) => {
-    setEditValue(e.target.value);
+    setTitleValue(e.target.value);
   }
 
   useEffect(() => {
+    const editItem = files.find(file => file.id === editId);
     if (enterKeyPress && (editId !== null)) {
       // enter 触发重命名
-      const editItem = files.find(file => file.id === editId);
-      onFileEdit(editItem.id, editValue);
-      handleEditClose();
+      onTitleEdit(editItem.id, titleValue);
+      handleEditClose(editItem);
     }
     if (escKeyPress && (editId !== null)) {
       // esc 触发关闭
-      handleEditClose();
+      handleEditClose(editItem);
     }
-  })
+  }, [enterKeyPress, escKeyPress])
 
   useEffect(() => {
     if (editId !== null) {
@@ -51,6 +54,14 @@ export default function FileList({ files, onFileClick, onFileEdit, onFileDelete 
       editRef.current.focus();
     }
   }, [editId])
+
+  useEffect(() => {
+    const newFile = files.find(file => file.isNew);
+    if (newFile) {
+      setEditId(newFile.id);
+      setTitleValue(newFile.title);
+    }
+  }, [files])
 
   return (
     <ul className="list-group list-group-flush file-list-container">
@@ -63,13 +74,13 @@ export default function FileList({ files, onFileClick, onFileEdit, onFileDelete 
               file.id === editId
                 ? <div className="edit-item">
                   <input className="form-control"
-                    value={editValue}
+                    value={titleValue}
                     onChange={handleEditChange}
                     ref={editRef}
                   />
                   <button className="icon-button"
                     type="button"
-                    onClick={handleEditClose}
+                    onClick={() => handleEditClose(file)}
                   >
                     <CloseSvg size={24} />
                   </button>
@@ -85,7 +96,7 @@ export default function FileList({ files, onFileClick, onFileEdit, onFileDelete 
                   </span>
                   <button className="col-2 icon-button"
                     type="button"
-                    onClick={() => handleFileEdit(file)}
+                    onClick={() => handleTitleEdit(file)}
                   >
                     <EditSvg size={24} />
                   </button>

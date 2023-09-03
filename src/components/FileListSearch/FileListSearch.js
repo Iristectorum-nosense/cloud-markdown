@@ -5,15 +5,10 @@ import { CloseSvg, SearchSvg } from '../../util/svg';
 import useKeyboard from '../../hooks/useKeyboard';
 
 FileListSearch.propTypes = {
-  title: PropTypes.string,
   onFileSearch: PropTypes.func.isRequired
 };
 
-FileListSearch.defaultProps = {
-  title: '文档列表'
-};
-
-export default function FileListSearch({ title, onFileSearch }) {
+export default function FileListSearch({ onFileSearch }) {
   const [inputActive, setInputActive] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const enterKeyPress = useKeyboard(13);
@@ -23,6 +18,7 @@ export default function FileListSearch({ title, onFileSearch }) {
   const handleSearchClose = () => {
     setInputActive(false);
     setInputValue('');
+    onFileSearch('');
   }
 
   const handleSearchClick = () => {
@@ -42,7 +38,7 @@ export default function FileListSearch({ title, onFileSearch }) {
       // esc 触发关闭
       handleSearchClose();
     }
-  })
+  }, [enterKeyPress, escKeyPress])
 
   useEffect(() => {
     if (inputActive) {
@@ -52,7 +48,7 @@ export default function FileListSearch({ title, onFileSearch }) {
   }, [inputActive])
 
   return (
-    <div className="alert alert-primary mb-0">
+    <div className="alert alert-primary mb-0 no-border">
       <div className="search-container">
         {
           inputActive
@@ -70,7 +66,7 @@ export default function FileListSearch({ title, onFileSearch }) {
               </button>
             </>
             : <>
-              <span>{title}</span>
+              <span>文档列表</span>
               <button className="icon-button"
                 type="button"
                 onClick={handleSearchClick}

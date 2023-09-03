@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 export default function useKeyboard(inputKeyCode) {
   const [keyPress, setKeyPress] = useState(false);
 
-  const handleKeyDown = ({ keyCode }) => {
+  const handleKeyDown = useCallback(({ keyCode }) => {
     if (keyCode === inputKeyCode) {
       setKeyPress(true);
     }
-  }
+  }, [])
 
-  const handleKeyUp = ({ keyCode }) => {
+  const handleKeyUp = useCallback(({ keyCode }) => {
     if (keyCode === inputKeyCode) {
       setKeyPress(false);
     }
-  }
+  }, [])
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
