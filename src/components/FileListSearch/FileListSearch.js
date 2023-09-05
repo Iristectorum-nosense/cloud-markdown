@@ -34,6 +34,7 @@ export default function FileListSearch({ onFileSearch }) {
       // enter 触发搜索
       onFileSearch(inputValue);
     }
+
     if (escKeyPress && inputActive) {
       // esc 触发关闭
       handleSearchClose();
