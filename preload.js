@@ -1,8 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const { join, basename, extname, dirname } = require('path');
-const remote = require('@electron/remote');
+const { app, dialog, Menu, getCurrentWindow } = require('@electron/remote');
 const { promises, accessSync, constants } = require('fs');
-
 
 // 注册 electron-store 相关的方法
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -12,13 +11,44 @@ contextBridge.exposeInMainWorld('electronAPI', {
     extname,
     dirname
   },
-  remote,
+  remote: {
+    app,
+    dialog
+  },
   fs: {
     promises,
     accessSync,
     constants
   }
 });
+
+// 注册 remote.menu 相关的方法
+contextBridge.exposeInMainWorld('remoteMenuAPI', {
+  createCtxMenu: (menuTemplate) => {
+    const menu = Menu.buildFromTemplate(menuTemplate);
+
+    const popupMenu = () => {
+      menu.popup({ window: getCurrentWindow() });
+    }
+
+    return popupMenu;
+  }
+});
+
+// 注册 ipcRenderer 针对主菜单的相关方法
+contextBridge.exposeInMainWorld('ipcAppMenuAPI', {
+  ipcMenuAction: (actionType, callback) => {
+    const on = () => {
+      ipcRenderer.on(actionType, callback);
+    }
+
+    const remove = () => {
+      ipcRenderer.removeListener(actionType, callback);
+    }
+
+    return { on, remove };
+  }
+})
 
 
 const Store = require('electron-store');

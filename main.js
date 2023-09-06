@@ -1,6 +1,8 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const isDev = require('electron-is-dev');
+const appMenuTemplate = require('./appMenuTemplate');
+
 let mainWindow;
 
 app.on('ready', () => {
@@ -17,12 +19,16 @@ app.on('ready', () => {
   mainWindow.loadURL(urlLocation);
   mainWindow.webContents.openDevTools();
 
+  // 设置主菜单
+  const menu = Menu.buildFromTemplate(appMenuTemplate);
+  Menu.setApplicationMenu(menu);
+
   // 开启 remote
   require('@electron/remote/main').initialize();
   require("@electron/remote/main").enable(mainWindow.webContents);
 
   // 监听持久化文件数据的请求
-  ipcMain.on('electron-store-get-data', (event, key) => {
+  ipcMain.on('electron-store-get-data', (_, key) => {
     mainWindow.webContents.send('electron-store-get-data', key);
   });
 });

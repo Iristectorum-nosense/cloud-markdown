@@ -9,10 +9,12 @@ import FileListBtn from './components/FileListBtn/FileListBtn';
 import TabList from './components/TabList/TabList';
 import SimpleMDE from './components/SimpleMDE/SimpleMDE';
 import Toast from './components/Common/Toast';
+import useIpcAppMenu from './hooks/useIpcAppMenu';
 
 const { join, basename, extname, dirname } = window.electronAPI.path;
-const remote = window.electronAPI.remote;
+const { app, dialog } = window.electronAPI.remote;
 const { saveFilesToStore, getFilesFromStore } = window.electronStoreAPI;
+// const { createNewFile } = window.ipcAppMenuAPI;
 
 // const defaultFiles = [  文件示例
 //   {
@@ -34,7 +36,7 @@ function App() {
   const [activeFileId, setActiveFileId] = useState('');
   const [openFileIds, setOpenFileIds] = useState([]);
   const [unsaveFileIds, setUnsaveFileIds] = useState([]);
-  const savedLocation = remote.app.getPath('documents');
+  const savedLocation = app.getPath('documents');
 
   /* 消息状态管理 */
   const [msgCtn, setMsgCtn] = useState('');
@@ -52,6 +54,7 @@ function App() {
 
   /* 搜索文档列表 */
   const onFileSearch = useCallback((name) => {
+    console.log('search');
     // 更新文档列表
     const newFiles = files.filter(file => file.title.includes(name));
     setSearchFiles(newFiles);
@@ -66,6 +69,8 @@ function App() {
 
   /* 点击文档列表文档 */
   const onFileClick = useCallback(async (fileId) => {
+
+    console.log('click', fileId)
     // 更新打开 files
     setActiveFileId(fileId);
 
@@ -119,7 +124,7 @@ function App() {
       });
 
       if (editItem.isNew) {
-        await fileHelper.writeFile(newPath, editItem.body);
+        await fileHelper.writeFile(newPath, editItem.body, editItem.isNew);
         setFiles(newFiles);
         saveFilesToStore(newFiles);
 
@@ -165,6 +170,7 @@ function App() {
 
   /* 新建文档 */
   const onFileAdd = useCallback(() => {
+    console.log('add');
     // 生成 id
     const newId = uuidv4();
 
@@ -185,7 +191,8 @@ function App() {
 
   /* 导入文档 */
   const onFileImport = useCallback(async () => {
-    const result = await remote.dialog.showOpenDialog({
+    console.log('import')
+    const result = await dialog.showOpenDialog({
       title: '选择导入的 Markdown 文件',
       defaultPath: 'C:\\Users\\Gtc\\Documents',
       properties: ['openFile', 'multiSelection'],
@@ -226,19 +233,15 @@ function App() {
     }
   }, [files])
 
-  const saveCurrentFile = () => {
-    fileHelper.writeFile(join(savedLocation, `${activeFile.title}.md`), activeFile.body).then(() => {
-      setUnsaveFileIds(unsaveFileIds.filter(id => id !== activeFile.id));
-    })
-  }
-
   /* 点击文档标签栏的文档 */
   const onTabClick = useCallback((fileId) => {
+    console.log('tab', fileId)
     setActiveFileId(fileId);
   }, [])
 
   /* 关闭文档标签栏的文档 */
   const onTabClose = useCallback((fileId) => {
+    console.log('close', fileId)
     // 更新标签栏 files
     const newOpenFileIds = openFileIds.filter(id => id !== fileId);
     setOpenFileIds(newOpenFileIds);
@@ -278,9 +281,20 @@ function App() {
     }
   }, [files, unsaveFileIds])
 
+  /* 保存当前文档编辑内容 */
+  const onFileSave = useCallback(async () => {
+    await fileHelper.writeFile(activeFile.path, activeFile.body, activeFile.isNew);
+    setUnsaveFileIds(unsaveFileIds.filter(id => id !== activeFile.id));
+  }, [activeFile, unsaveFileIds])
+
+  /* 关闭消息框 */
   const closeMessage = () => {
     setMsgCtn('');
   }
+
+  useIpcAppMenu('create-new-file', onFileAdd);
+  useIpcAppMenu('save-edit-file', onFileSave);
+  useIpcAppMenu('import-file', onFileImport);
 
   return (
     <div className="App container-fluid px-0">
@@ -301,11 +315,6 @@ function App() {
             onFileDelete={onFileDelete}
             onMsgCtn={setMsgCtn}
           />
-          {/* <FileListBtn
-            title="保存"
-            className="btn-import"
-            onBtnClick={saveCurrentFile}
-          /> */}
           {
             !searchState &&
             <div className="row g-0 btn-container">

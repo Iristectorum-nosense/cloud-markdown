@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import './FileListSearch.scss';
 import { CloseSvg, SearchSvg } from '../../util/svg';
 import useKeyboard from '../../hooks/useKeyboard';
+import useIpcAppMenu from '../../hooks/useIpcAppMenu';
 
 FileListSearch.propTypes = {
   onFileSearch: PropTypes.func.isRequired
@@ -15,13 +16,16 @@ export default function FileListSearch({ onFileSearch }) {
   const escKeyPress = useKeyboard(27);
   const inputRef = useRef(null);
 
+  /* 关闭搜索 */
   const handleSearchClose = () => {
     setInputActive(false);
     setInputValue('');
     onFileSearch('');
   }
 
+  /* 打开搜索 */
   const handleSearchClick = () => {
+    console.log('1')
     setInputActive(true);
   }
 
@@ -47,6 +51,8 @@ export default function FileListSearch({ onFileSearch }) {
       inputRef.current.focus();
     }
   }, [inputActive])
+
+  useIpcAppMenu('search-file', handleSearchClick);
 
   return (
     <div className="alert alert-primary mb-0 no-border">

@@ -16,7 +16,10 @@ const fileHelper = {
     return promises.readFile(path, { encoding: 'utf8' });
   },
   /* 写文件 */
-  writeFile: (path, content) => {
+  writeFile: (path, content, isNew) => {
+    if (!isNew) {
+      checkExist(path);
+    }
     return promises.writeFile(path, content, { encoding: 'utf8' });
   },
   /* 重命名 */
