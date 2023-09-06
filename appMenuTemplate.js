@@ -81,7 +81,7 @@ let menuTemplate = [
   //   label: '云同步',
   //   submenu: [
   //     {
-  //       label: '设置',
+  //       label: '文件保存位置',
   //       accelerator: 'CmdOrCtrl+,',
   //       click: () => {
   //         ipcMain.emit('open-settings-window')
@@ -116,15 +116,6 @@ let menuTemplate = [
     label: '视图',
     submenu: [
       {
-        label: '刷新当前页面',
-        accelerator: 'CmdOrCtrl+R',
-        click: (_, focusedWindow) => {
-          if (focusedWindow) {
-            focusedWindow.reload();
-          }
-        }
-      },
-      {
         label: '切换全屏幕',
         accelerator: (() => {
           if (process.platform === 'darwin') {
@@ -135,8 +126,9 @@ let menuTemplate = [
           }
         })(),
         click: (_, focusedWindow) => {
-          if (focusedWindow)
+          if (focusedWindow) {
             focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
+          }
         }
       },
       {
@@ -202,13 +194,6 @@ if (process.platform === 'darwin') {
         type: 'separator'
       },
       {
-        label: '设置',
-        accelerator: 'Command+,',
-        click: () => {
-          ipcMain.emit('open-settings-window')
-        }
-      },
-      {
         label: '服务',
         role: 'services',
         submenu: []
@@ -243,14 +228,5 @@ if (process.platform === 'darwin') {
     ]
   })
 }
-// else {
-//   menuTemplate[0].submenu.push({
-//     label: '设置',
-//     accelerator: 'Ctrl+,',
-//     click: () => {
-//       ipcMain.emit('open-settings-window');
-//     }
-//   })
-// }
 
 module.exports = menuTemplate;

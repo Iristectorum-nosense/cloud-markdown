@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import './App.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,9 +14,8 @@ import useIpcAppMenu from './hooks/useIpcAppMenu';
 const { join, basename, extname, dirname } = window.electronAPI.path;
 const { app, dialog } = window.electronAPI.remote;
 const { saveFilesToStore, getFilesFromStore } = window.electronStoreAPI;
-// const { createNewFile } = window.ipcAppMenuAPI;
 
-// const defaultFiles = [  文件示例
+// const defaultFiles = [  文档示例
 //   {
 //     id: '1',
 //     title: 'init',
@@ -54,7 +53,6 @@ function App() {
 
   /* 搜索文档列表 */
   const onFileSearch = useCallback((name) => {
-    console.log('search');
     // 更新文档列表
     const newFiles = files.filter(file => file.title.includes(name));
     setSearchFiles(newFiles);
@@ -69,8 +67,6 @@ function App() {
 
   /* 点击文档列表文档 */
   const onFileClick = useCallback(async (fileId) => {
-
-    console.log('click', fileId)
     // 更新打开 files
     setActiveFileId(fileId);
 
@@ -109,7 +105,7 @@ function App() {
     // 新建文档写入，已有文档修改
     if (newTitle) {
       // 文件新路径
-      const newPath = join(savedLocation, `${newTitle}.md`);
+      const newPath = join(savedLocation, `\\YunMarkDown\\${newTitle}.md`);
 
       // 更新文档列表
       const newFiles = files.map(file => {
@@ -170,7 +166,6 @@ function App() {
 
   /* 新建文档 */
   const onFileAdd = useCallback(() => {
-    console.log('add');
     // 生成 id
     const newId = uuidv4();
 
@@ -191,7 +186,6 @@ function App() {
 
   /* 导入文档 */
   const onFileImport = useCallback(async () => {
-    console.log('import')
     const result = await dialog.showOpenDialog({
       title: '选择导入的 Markdown 文件',
       defaultPath: 'C:\\Users\\Gtc\\Documents',
@@ -235,13 +229,11 @@ function App() {
 
   /* 点击文档标签栏的文档 */
   const onTabClick = useCallback((fileId) => {
-    console.log('tab', fileId)
     setActiveFileId(fileId);
   }, [])
 
   /* 关闭文档标签栏的文档 */
   const onTabClose = useCallback((fileId) => {
-    console.log('close', fileId)
     // 更新标签栏 files
     const newOpenFileIds = openFileIds.filter(id => id !== fileId);
     setOpenFileIds(newOpenFileIds);

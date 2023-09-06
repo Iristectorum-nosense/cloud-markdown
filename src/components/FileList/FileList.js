@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import './FileList.scss';
-import { CloseSvg, DeleteSvg, EditSvg, FileSvg } from '../../util/svg';
+import { CloseSvg, FileSvg } from '../../util/svg';
 import useKeyboard from '../../hooks/useKeyboard';
 import { duplicateTitle, validateTitle } from '../../util/titleCheck';
 import { getParentNode } from '../../util/domAction';
@@ -158,18 +158,6 @@ export default function FileList({ files, onFileClick, onTitleEdit, onFileDelete
                   >
                     {file.title}
                   </span>
-                  {/* <button className="col-2 icon-button"
-                    type="button"
-                    onClick={() => handleTitleEdit(file)}
-                  >
-                    <EditSvg size={24} />
-                  </button>
-                  <button className="col-2 icon-button"
-                    type="button"
-                    onClick={() => onFileDelete(file)}
-                  >
-                    <DeleteSvg size={24} />
-                  </button> */}
                 </>
             }
           </li>

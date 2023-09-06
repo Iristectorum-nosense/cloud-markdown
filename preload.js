@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const { join, basename, extname, dirname } = require('path');
 const { app, dialog, Menu, getCurrentWindow } = require('@electron/remote');
-const { promises, accessSync, constants } = require('fs');
+const { promises, accessSync, constants, mkdirSync } = require('fs');
 
 // 注册 electron-store 相关的方法
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -18,7 +18,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fs: {
     promises,
     accessSync,
-    constants
+    constants,
+    mkdirSync
   }
 });
 
@@ -74,4 +75,9 @@ ipcRenderer.on('electron-store-get-data', (event, key) => {
     // 将文件数据发送回渲染进程
     event.reply('electron-store-get-data-response', files);
   }
+});
+
+// 主进程关闭时卸载监听
+ipcRenderer.on('clean-listeners', () => {
+  ipcRenderer.removeAllListeners('electron-store-get-data');
 });

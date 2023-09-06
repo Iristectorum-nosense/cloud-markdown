@@ -25,7 +25,6 @@ export default function FileListSearch({ onFileSearch }) {
 
   /* 打开搜索 */
   const handleSearchClick = () => {
-    console.log('1')
     setInputActive(true);
   }
 
@@ -73,7 +72,7 @@ export default function FileListSearch({ onFileSearch }) {
               </button>
             </>
             : <>
-              <span>文档列表</span>
+              <span style={{ fontSize: '24px' }}>文档列表</span>
               <button className="icon-button"
                 type="button"
                 onClick={handleSearchClick}

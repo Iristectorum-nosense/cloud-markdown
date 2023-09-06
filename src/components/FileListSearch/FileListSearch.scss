@@ -1,12 +1,19 @@
-.search-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 30px;
+.alert {
+  background-color: #3b3b3b;
+  color: #ffffff;
+  border: 0;
 
-  .icon-button {
-    margin-left: 10px;
-    background: none;
-    border: none;
+  .search-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 30px;
+
+    .icon-button {
+      margin-left: 10px;
+      background: none;
+      color: #ffffff;
+      border: none;
+    }
   }
 }
