@@ -1,3 +1,8 @@
+$mainColor: #3b3b3b;
+$reverseMainColor: #ffffff;
+$activeColor: #c2c2c2;
+$reverseActiveColor: #000000;
+
 .App {
 
   .left,
@@ -20,27 +25,23 @@
     align-items: center;
     width: 100%;
     height: 100%;
-    background-color: #3b3b3b;
-    color: #ffffff;
+    background-color: $mainColor;
+    color: $reverseMainColor;
 
     svg {
       margin-right: 8px;
-      color: #ffffff;
+      color: $reverseMainColor;
     }
   }
 
   .btn-add:hover,
   .btn-import:hover {
-    background-color: #c2c2c2;
-    color: #000000;
+    background-color: $activeColor;
+    color: $reverseActiveColor;
 
     svg {
-      color: #000000;
+      color: $reverseActiveColor;
     }
-  }
-
-  .button {
-    border-radius: 0 !important;
   }
 
   .init-page {
@@ -51,6 +52,16 @@
     font-weight: bold;
     color: #999999;
     background-color: #f5f5f5;
+  }
+
+  // bootstrap 样式覆盖
+  .form-control:focus {
+    border-color: $mainColor;
+    box-shadow: 0 0 0 0.25em rgba(59, 59, 59, 0.25);
+  }
+
+  .button {
+    border-radius: 0 !important;
   }
 
   .toast {

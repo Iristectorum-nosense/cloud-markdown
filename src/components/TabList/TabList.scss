@@ -32,5 +32,9 @@
       // 未保存时 hover 不显示未保存
       display: none;
     }
+
+    .nav-link:not(.active) {
+      color: #8b8b8b;
+    }
   }
 }
