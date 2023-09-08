@@ -11,9 +11,11 @@ import SimpleMDE from './components/SimpleMDE/SimpleMDE';
 import Toast from './components/Common/Toast';
 import useIpcAppMenu from './hooks/useIpcAppMenu';
 import Setting from './components/Common/Setting';
+import { timestampToStr } from './util/timeTrans';
 
 const { join, basename, extname, dirname } = window.electronAPI.path;
 const { dialog } = window.electronAPI.remote;
+const { ipcAutoSync } = window.ipcAppMenuAPI;
 const { saveFilesToStore, getFilesFromStore, getSettingsFromStore } = window.electronStoreAPI;
 
 /* 文档示例
@@ -23,7 +25,7 @@ const { saveFilesToStore, getFilesFromStore, getSettingsFromStore } = window.ele
  *     title: 'init',
  *     body: '## 开始新的 Markdown',
  *     path: '',
- *     createTime: 1563762965704,
+ *     cloudTime: 1563762965704,
  *     isNew: false,
  *     isLoad: true
  *   }
@@ -184,7 +186,6 @@ function App() {
         id: newId,
         title: '',
         body: '## 开始新的 Markdown',
-        createTime: new Date().getTime(),
         isNew: true,
         isLoad: true
       }
@@ -281,11 +282,39 @@ function App() {
     }
   }, [files, unsaveFileIds])
 
+  /* 获取当前的云同步设置 */
+  const getYunConfig = () => {
+    const settings = getSettingsFromStore();
+    return ['AccessKey', 'SecretKey', 'Bucket', 'AutoSync'].every(item => !!settings[item]);
+  }
+
   /* 保存当前文档编辑内容 */
   const onFileSave = useCallback(async () => {
     await fileHelper.writeFile(activeFile.path, activeFile.body, activeFile.isNew);
     setUnsaveFileIds(unsaveFileIds.filter(id => id !== activeFile.id));
+
+    // 自动云同步
+    if (getYunConfig()) {
+      ipcAutoSync(activeFile.title, activeFile.path);
+    }
   }, [activeFile, unsaveFileIds])
+
+  /* 文档云同步更新时间 */
+  const onUpdateUploadTime = useCallback(() => {
+    // 修改时间
+    const newFiles = files.map(file => {
+      if (file.id === activeFile.id) {
+        let uploadFile = { ...file };
+        uploadFile.cloudTime = new Date().getTime();
+        return uploadFile;
+      }
+      return file;
+    })
+
+    // 更新文档列表
+    setFiles(newFiles);
+    saveFilesToStore(newFiles);
+  }, [activeFile, files])
 
   /* 关闭消息框 */
   const closeMessage = useCallback(() => {
@@ -305,6 +334,7 @@ function App() {
   useIpcAppMenu('create-new-file', onFileAdd);
   useIpcAppMenu('save-edit-file', onFileSave);
   useIpcAppMenu('import-file', onFileImport);
+  useIpcAppMenu('upload-timestamp', onUpdateUploadTime);
 
   return (
     <div className="App container-fluid px-0">
@@ -377,6 +407,12 @@ function App() {
                   activeFile={activeFile}
                   onFileChange={onFileChange}
                 />
+                <div className="time">
+                  上次同步时间：
+                  {
+                    activeFile.cloudTime ? timestampToStr(activeFile.cloudTime) : '未同步过'
+                  }
+                </div>
               </>
               : <div className="init-page">开始你的新页面吧</div>
           }
