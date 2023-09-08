@@ -1,9 +1,13 @@
 const { app, shell, ipcMain } = require('electron');
-// const Store = require('electron-store')
-// const settingsStore = new Store({ name: 'Settings' })
 
-// const qiniuIsConfiged = ['accessKey', 'secretKey', 'bucketName'].every(key => !!settingsStore.get(key))
-// let enableAutoSync = settingsStore.get('enableAutoSync')
+// 定义 store
+const Store = require('electron-store');
+const settingsStore = new Store({ name: 'Files Data' });
+const settings = settingsStore.get('settings');
+
+let AutoSync = settings['AutoSync'];
+let IsConfig = ['AccessKey', 'SecretKey', 'Bucket'].every(item => !!settings[item]);
+
 
 let menuTemplate = [
   {
@@ -77,44 +81,49 @@ let menuTemplate = [
       }
     ]
   },
-  // {
-  //   label: '云同步',
-  //   submenu: [
-  //     {
-  //       label: '文件保存位置',
-  //       accelerator: 'CmdOrCtrl+,',
-  //       click: () => {
-  //         ipcMain.emit('open-settings-window')
-  //       }
-  //     },
-  //     {
-  //       label: '自动同步',
-  //       type: 'checkbox',
-  //       enabled: qiniuIsConfiged,
-  //       checked: enableAutoSync,
-  //       click: () => {
-  //         settingsStore.set('enableAutoSync', !enableAutoSync)
-  //       }
-  //     },
-  //     {
-  //       label: '全部同步至云端',
-  //       enabled: qiniuIsConfiged,
-  //       click: () => {
-  //         ipcMain.emit('upload-all-to-qiniu')
-  //       }
-  //     },
-  //     {
-  //       label: '从云端下载到本地',
-  //       enabled: qiniuIsConfiged,
-  //       click: () => {
+  {
+    label: '云同步',
+    submenu: [
+      {
+        label: '自动同步',
+        type: 'checkbox',
+        enabled: IsConfig,
+        checked: AutoSync,
+        click: (item) => {
+          settingsStore.set('settings', {
+            ...settings,
+            ['AutoSync']: item.checked
+          });
+        }
+      },
+      {
+        label: '全部同步至云空间',
+        enabled: IsConfig,
+        click: () => {
+          // ipcMain.emit('upload-all-to-qiniu')
+        }
+      },
+      {
+        label: '全部下载至本地',
+        enabled: IsConfig,
+        click: () => {
 
-  //       }
-  //     }
-  //   ]
-  // },
+        }
+      }
+    ]
+  },
   {
     label: '视图',
     submenu: [
+      {
+        label: '刷新当前页面',
+        accelerator: 'CmdOrCtrl+R',
+        click: (_, focusedWindow) => {
+          if (focusedWindow) {
+            focusedWindow.reload();
+          }
+        }
+      },
       {
         label: '切换全屏幕',
         accelerator: (() => {

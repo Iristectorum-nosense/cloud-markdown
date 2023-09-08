@@ -6,6 +6,7 @@ import { CloseSvg } from '../../util/svg';
 
 const { dialog } = window.electronAPI.remote;
 const { saveSettingsToStore, getSettingsFromStore } = window.electronStoreAPI;
+const { ipcYunConfig } = window.ipcAppMenuAPI;
 
 Setting.propTypes = {
   settingStore: PropTypes.object,
@@ -76,6 +77,7 @@ export default function Setting({ closeSetting, onMsgCtn }) {
 
     if (!patternResult.includes(false)) {
       saveSettingsToStore(settingValue);
+      ipcYunConfig(settingValue);
       onMsgCtn('设置成功');
     } else {
       onMsgCtn('Key 为 40 个字符，只含字母、数字、短划线；Bucket 3 ~ 63 位，只含小写字母、数字、短划线，且必须以小写字母或者数字开头和结尾');
