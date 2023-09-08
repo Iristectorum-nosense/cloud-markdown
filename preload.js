@@ -57,8 +57,21 @@ contextBridge.exposeInMainWorld('ipcAppMenuAPI', {
   /* 自动云同步 */
   ipcAutoSync: (title, path) => {
     ipcRenderer.send('auto-sync-upload', {
-      fileName: `${title}`,
+      fileName: `${title}.md`,
       path: path
+    });
+  },
+  /* 重命名云同步 */
+  ipcRename: (oldTitle, newTitle) => {
+    ipcRenderer.send('auto-sync-rename', {
+      oldName: `${oldTitle}.md`,
+      newName: `${newTitle}.md`
+    });
+  },
+  /* 删除云同步 */
+  ipcDelete: (title) => {
+    ipcRenderer.send('auto-sync-delete', {
+      fileName: `${title}.md`
     });
   }
 });

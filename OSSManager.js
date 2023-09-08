@@ -48,6 +48,14 @@ class OSSManager {
     });
   }
 
+  /* 文件重命名 */
+  remoteFileRename(oldName, newName) {
+    return new Promise((resolve, reject) => {
+      this.bucketManager.move(this.bucket, oldName, this.bucket, newName, { force: true },
+        this._callbackWithPromise(resolve, reject));
+    });
+  }
+
   /* 文件删除 */
   remoteFileDelete(fileName) {
     return new Promise((resolve, reject) => {
@@ -79,10 +87,19 @@ class OSSManager {
       return new Promise((resolve, reject) => {
         writeData.on('finish', resolve);
         writeData.on('error', reject);
-      })
+      });
     } catch (error) {
       throw new Error(error);
     }
+  }
+
+  /* 获取指定前缀的文件列表 */
+
+  /* 判断文件是否存在云空间 */
+  fileExists(fileName) {
+    return new Promise((resolve, reject) => {
+      this.bucketManager.stat(this.bucket, fileName, this._callbackWithPromise(resolve, reject));
+    });
   }
 
   /* 生成下载链接 */

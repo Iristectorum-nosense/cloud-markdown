@@ -13,6 +13,21 @@
   }
 }
 
+.loading {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, .5);
+
+  >div {
+    position: fixed;
+    top: calc(50% - 50px);
+    width: 100px;
+    height: 100px;
+  }
+}
+
 .setting-header {
   display: flex;
   justify-content: flex-end;

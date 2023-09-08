@@ -12,10 +12,11 @@ import Toast from './components/Common/Toast';
 import useIpcAppMenu from './hooks/useIpcAppMenu';
 import Setting from './components/Common/Setting';
 import { timestampToStr } from './util/timeTrans';
+import Loader from './components/Common/Loader';
 
 const { join, basename, extname, dirname } = window.electronAPI.path;
 const { dialog } = window.electronAPI.remote;
-const { ipcAutoSync } = window.ipcAppMenuAPI;
+const { ipcAutoSync, ipcRename, ipcDelete } = window.ipcAppMenuAPI;
 const { saveFilesToStore, getFilesFromStore, getSettingsFromStore } = window.electronStoreAPI;
 
 /* 文档示例
@@ -47,6 +48,9 @@ function App() {
 
   /* 设置状态管理 */
   const [settingActive, setSettingActive] = useState(false);
+
+  /* Loading 状态管理 */
+  const [loading, setLoading] = useState(false);
 
   /* 展示搜索文档或全部文档 */
   const fileList = (searchState ? searchFiles : files);
@@ -138,12 +142,19 @@ function App() {
         setActiveFileId(editItem.id);
         setOpenFileIds([...openFileIds, editItem.id]);
       } else {
-        try {
-          await fileHelper.renameFile(editItem.path, join(dirname(editItem.path), `${newTitle}.md`));
-          setFiles(newFiles);
-          saveFilesToStore(newFiles);
-        } catch (error) {
-          onFileDelete(editItem);
+        if (newTitle !== editItem.title) {  // 命名有改变
+          try {
+            await fileHelper.renameFile(editItem.path, join(dirname(editItem.path), `${newTitle}.md`));
+            setFiles(newFiles);
+            saveFilesToStore(newFiles);
+
+            // 自动云同步
+            if (getYunConfig()) {
+              ipcRename(editItem.title, newTitle);
+            }
+          } catch (error) {
+            onFileDelete(editItem);
+          }
         }
       }
     }
@@ -160,6 +171,11 @@ function App() {
       const delFile = files.find(file => file.id === fileId);
       try {
         await fileHelper.deleteFile(delFile.path);
+
+        // 自动云同步
+        if (getYunConfig()) {
+          ipcDelete(delFile.title);
+        }
       } catch (error) {
         setMsgCtn('文件不存在，已移出文档列表');
       }
@@ -300,21 +316,89 @@ function App() {
   }, [activeFile, unsaveFileIds])
 
   /* 文档云同步更新时间 */
-  const onUpdateUploadTime = useCallback(() => {
-    // 修改时间
-    const newFiles = files.map(file => {
-      if (file.id === activeFile.id) {
+  const onUpdateUploadTime = useCallback((_, type) => {
+    let newFiles = [];
+    if (type === 'all') {
+      // 更新所有文件时间
+      newFiles = files.map(file => {
         let uploadFile = { ...file };
         uploadFile.cloudTime = new Date().getTime();
         return uploadFile;
-      }
-      return file;
-    })
+      });
+    } else {
+      // 更新单个文件时间
+      newFiles = files.map(file => {
+        if (file.id === activeFile.id) {
+          let uploadFile = { ...file };
+          uploadFile.cloudTime = new Date().getTime();
+          return uploadFile;
+        }
+        return file;
+      });
+    }
 
     // 更新文档列表
     setFiles(newFiles);
     saveFilesToStore(newFiles);
   }, [activeFile, files])
+
+  /* 文档全部同步到本地更新内容 */
+  const onUpdateDownloadContent = useCallback(async (_, filterFiles) => {
+    // 已同步下载文档 isLoad 全部改为 false
+    const newFiles = files.map(file => {
+      const match = filterFiles.find(item => item.id === file.id);
+
+      if (match) {
+        const newFile = { ...file };
+        newFile.isLoad = false;
+        return newFile;
+      } else {
+        return file;
+      }
+    });
+
+    setFiles(newFiles);
+
+    // 已同步下载文档移出未保存文档
+    const newUnSaveIds = unsaveFileIds.map(id => {
+      const match = filterFiles.find(item => item.id === id);
+
+      if (match) {
+        return undefined;
+      } else {
+        return id;
+      }
+    }).filter(id => id !== undefined);
+    setUnsaveFileIds(newUnSaveIds);
+
+    // 已同步下载文档若打开，重新请求内容
+    const newOpenFiles = openFileIds.map(id => {
+      return filterFiles.find(item => item.id === id);
+    }).filter(item => item !== undefined);
+
+    // 生成一个 promise 数组
+    const openFilesPromises = newOpenFiles.map(async (file) => {
+      let newFile = { ...file };
+      newFile.body = await fileHelper.readFile(file.path);
+      newFile.isLoad = true;
+      return newFile;
+    });
+
+    const openFilesContents = await Promise.all(openFilesPromises);
+
+    // 更新原文档列表
+    const newFilesContents = files.map(file => {
+      const newFile = openFilesContents.find(item => item.id === file.id);
+
+      if (newFile) {
+        return newFile;
+      } else {
+        return file;
+      }
+    });
+
+    setFiles(newFilesContents);
+  }, [files, unsaveFileIds, openFileIds])
 
   /* 关闭消息框 */
   const closeMessage = useCallback(() => {
@@ -331,13 +415,24 @@ function App() {
     setSettingActive(false);
   }, [])
 
+  /* 设置加载状态 */
+  const setLoadingStatus = useCallback((_, status) => {
+    setLoading(status);
+  }, [])
+
   useIpcAppMenu('create-new-file', onFileAdd);
   useIpcAppMenu('save-edit-file', onFileSave);
   useIpcAppMenu('import-file', onFileImport);
   useIpcAppMenu('upload-timestamp', onUpdateUploadTime);
+  useIpcAppMenu('download-content', onUpdateDownloadContent);
+  useIpcAppMenu('loading', setLoadingStatus);
+  useIpcAppMenu('message', (_, msg) => setMsgCtn(msg));
 
   return (
     <div className="App container-fluid px-0">
+      {
+        loading && <Loader />
+      }
       <Toast
         message={msgCtn}
         closeMessage={closeMessage}

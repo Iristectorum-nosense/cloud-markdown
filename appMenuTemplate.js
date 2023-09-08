@@ -100,14 +100,14 @@ let menuTemplate = [
         label: '全部同步至云空间',
         enabled: IsConfig,
         click: () => {
-          // ipcMain.emit('upload-all-to-qiniu')
+          ipcMain.emit('upload-all-files');
         }
       },
       {
         label: '全部下载至本地',
         enabled: IsConfig,
         click: () => {
-
+          ipcMain.emit('download-all-files');
         }
       }
     ]

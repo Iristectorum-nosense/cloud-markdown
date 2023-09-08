@@ -83,11 +83,117 @@ app.on('ready', () => {
   /* 监听自动云同步 */
   ipcMain.on('auto-sync-upload', async (_, data) => {
     const manager = createManager();
+
     try {
       await manager.remoteFileUpload(data.fileName, data.path);
       mainWindow.webContents.send('upload-timestamp');  // 传递给渲染进程，提示文件同步时间
     } catch (err) {
       throw new Error(err);
+    }
+  });
+
+  /* 监听文件重命名 */
+  ipcMain.on('auto-sync-rename', async (_, data) => {
+    const manager = createManager();
+
+    try {
+      // 检查文件是否存在
+      await manager.fileExists(data.oldName);
+
+      try {
+        await manager.remoteFileRename(data.oldName, data.newName);
+        mainWindow.webContents.send('upload-timestamp');  // 传递给渲染进程，提示文件同步时间
+      } catch (err) {
+        throw new Error(err);
+      }
+    } catch (error) {
+      mainWindow.webContents.send('message', '云空间不存在该文件');
+    }
+  });
+
+  /* 监听文件删除 */
+  ipcMain.on('auto-sync-delete', async (_, data) => {
+    const manager = createManager();
+
+    try {
+      // 检查文件是否存在
+      await manager.fileExists(data.fileName);
+
+      try {
+        await manager.remoteFileDelete(data.fileName);
+      } catch (err) {
+        throw new Error(err);
+      }
+    } catch (error) {
+      mainWindow.webContents.send('message', '云空间不存在该文件');
+    }
+  });
+
+  /* 监听文件全部上传 */
+  ipcMain.on('upload-all-files', async () => {
+    mainWindow.webContents.send('loading', true);
+
+    const files = store.get('files') || [];
+
+    try {
+      if (files.length) {
+        const manager = createManager();
+
+        // 批量上传 Promise 数组
+        const uploadPromises = files.map(file => {
+          return manager.remoteFileUpload(`${file.title}.md`, file.path);
+        });
+
+        await Promise.all(uploadPromises);
+        mainWindow.webContents.send('upload-timestamp', 'all');
+        mainWindow.webContents.send('message', '上传成功');
+      }
+    } catch (error) {
+      mainWindow.webContents.send('message', '上传失败，请稍后重试');
+      throw new Error(err);
+    } finally {
+      mainWindow.webContents.send('loading', false);
+    }
+  });
+
+  /* 监听文件全部下载 */
+  ipcMain.on('download-all-files', async () => {
+    mainWindow.webContents.send('loading', true);
+
+    const files = store.get('files') || [];
+
+    try {
+      if (files.length) {
+        const manager = createManager();
+
+        // 过滤云空间存在的文档列表
+        const existPromises = files.map(file => {
+          return manager.fileExists(`${file.title}.md`);
+        })
+
+        // 所有 Promises 的结果
+        const existResults = await Promise.allSettled(existPromises);
+
+        const filterFiles = files.filter((_, fileIndex) => {
+          return existResults.some((promise, promiseIndex) => {
+            return promise.status === 'fulfilled' && promiseIndex === fileIndex;
+          });
+        });
+
+        // 批量下载 Promise 数组
+        const downLoadPromise = filterFiles.map(file => {
+          return manager.remoteFileDownload(`${file.title}.md`, file.path);
+        });
+
+        await Promise.all(downLoadPromise);
+        mainWindow.webContents.send('message', '下载成功，部分文件未保存在云空间内');
+        mainWindow.webContents.send('download-content', filterFiles);
+      }
+    } catch (error) {
+      mainWindow.webContents.send('message', '下载失败，请稍后重试');
+      throw new Error(err);
+    } finally {
+      mainWindow.webContents.send('loading', false);
     }
   });
 
