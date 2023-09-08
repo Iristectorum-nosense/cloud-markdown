@@ -1,0 +1,51 @@
+.toast {
+  position: fixed;
+  top: 0;
+  left: calc(50% - 250px);
+  width: 500px;
+  max-width: 500px;
+  z-index: 10;
+  background-color: #ffffff;
+
+  .toast-header {
+    display: grid;
+    grid-template-columns: 1fr 30px;
+  }
+}
+
+.setting-header {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  height: 62px;
+
+  .icon-button {
+    background: none;
+    color: #ffffff;
+    border: none;
+  }
+}
+
+.setting-content {
+  display: grid;
+  align-items: center;
+
+  .setting-item {
+    >div {
+      height: 40px;
+      display: flex;
+      align-items: center;
+
+      >button {
+        height: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+
+    >input {
+      font-size: 14px;
+    }
+  }
+}

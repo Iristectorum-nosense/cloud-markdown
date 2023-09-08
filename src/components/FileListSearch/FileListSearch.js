@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import './FileListSearch.scss';
-import { CloseSvg, SearchSvg } from '../../util/svg';
+import { CloseSvg, SearchSvg, SettingSvg } from '../../util/svg';
 import useKeyboard from '../../hooks/useKeyboard';
 import useIpcAppMenu from '../../hooks/useIpcAppMenu';
 
 FileListSearch.propTypes = {
-  onFileSearch: PropTypes.func.isRequired
+  onFileSearch: PropTypes.func.isRequired,
+  clickSetting: PropTypes.func.isRequired
 };
 
-export default function FileListSearch({ onFileSearch }) {
+export default function FileListSearch({ onFileSearch, clickSetting }) {
   const [inputActive, setInputActive] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const enterKeyPress = useKeyboard(13);
@@ -30,6 +31,11 @@ export default function FileListSearch({ onFileSearch }) {
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
+  }
+
+  /* 打开设置 */
+  const handleSettingClick = () => {
+    clickSetting();
   }
 
   useEffect(() => {
@@ -72,6 +78,12 @@ export default function FileListSearch({ onFileSearch }) {
               </button>
             </>
             : <>
+              <button className="icon-button"
+                type="button"
+                onClick={handleSettingClick}
+              >
+                <SettingSvg size={32} />
+              </button>
               <span style={{ fontSize: '24px' }}>文档列表</span>
               <button className="icon-button"
                 type="button"

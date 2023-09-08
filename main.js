@@ -6,6 +6,8 @@ const appMenuTemplate = require('./appMenuTemplate');
 let mainWindow;
 
 app.on('ready', () => {
+  app.name = 'YunMarkDown';  // 应用程序名称
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -16,6 +18,7 @@ app.on('ready', () => {
     show: false
   });
 
+  mainWindow.setMinimumSize(1000, 600);  // 最小窗口大小
   const urlLocation = isDev ? 'http://localhost:3000' : '';
   mainWindow.loadURL(urlLocation);
   mainWindow.once('ready-to-show', () => {

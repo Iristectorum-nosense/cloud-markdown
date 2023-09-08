@@ -10,22 +10,25 @@ import TabList from './components/TabList/TabList';
 import SimpleMDE from './components/SimpleMDE/SimpleMDE';
 import Toast from './components/Common/Toast';
 import useIpcAppMenu from './hooks/useIpcAppMenu';
+import Setting from './components/Common/Setting';
 
 const { join, basename, extname, dirname } = window.electronAPI.path;
-const { app, dialog } = window.electronAPI.remote;
-const { saveFilesToStore, getFilesFromStore } = window.electronStoreAPI;
+const { dialog } = window.electronAPI.remote;
+const { saveFilesToStore, getFilesFromStore, getSettingsFromStore } = window.electronStoreAPI;
 
-// const defaultFiles = [  文档示例
-//   {
-//     id: '1',
-//     title: 'init',
-//     body: '## 开始新的 Markdown',
-//     path: '',
-//     createTime: 1563762965704,
-//     isNew: false,
-//     isLoad: true
-//   }
-// ];
+/* 文档示例
+ * const defaultFiles = [  
+ *   {
+ *     id: '1',
+ *     title: 'init',
+ *     body: '## 开始新的 Markdown',
+ *     path: '',
+ *     createTime: 1563762965704,
+ *     isNew: false,
+ *     isLoad: true
+ *   }
+ * ];
+ */
 
 function App() {
   /* 文档状态管理 */
@@ -35,10 +38,13 @@ function App() {
   const [activeFileId, setActiveFileId] = useState('');
   const [openFileIds, setOpenFileIds] = useState([]);
   const [unsaveFileIds, setUnsaveFileIds] = useState([]);
-  const savedLocation = app.getPath('documents');
+  const savedLocation = getSettingsFromStore()['存储位置'];
 
   /* 消息状态管理 */
   const [msgCtn, setMsgCtn] = useState('');
+
+  /* 设置状态管理 */
+  const [settingActive, setSettingActive] = useState(false);
 
   /* 展示搜索文档或全部文档 */
   const fileList = (searchState ? searchFiles : files);
@@ -81,6 +87,7 @@ function App() {
     if (!activeFile.isLoad) {
       try {
         const fileCtn = await fileHelper.readFile(activeFile.path);
+
         const newFiles = files.map(file => {
           if (file.id === fileId) {
             let newFile = { ...file };
@@ -90,6 +97,7 @@ function App() {
           }
           return file;
         });
+
         setFiles(newFiles);
       } catch (error) {
         // 如果用户在文件系统手动删除文件，并尝试打开，则需要清理该文件
@@ -105,7 +113,7 @@ function App() {
     // 新建文档写入，已有文档修改
     if (newTitle) {
       // 文件新路径
-      const newPath = join(savedLocation, `\\YunMarkDown\\${newTitle}.md`);
+      const newPath = join(savedLocation, `${newTitle}.md`);
 
       // 更新文档列表
       const newFiles = files.map(file => {
@@ -197,13 +205,13 @@ function App() {
 
     if (result.filePaths.length) {
       // 文件去重
-      const paths = new Set();
+      const titles = new Set();
       for (const file of files) {
-        paths.add(file.path);
+        titles.add(file.title);
       }
 
       const importFiles = result.filePaths.map(path => {
-        if (!paths.has(path)) {
+        if (!titles.has(basename(path, extname(path)))) {
           const importFile = {
             id: uuidv4(),
             title: basename(path, extname(path)),
@@ -280,9 +288,19 @@ function App() {
   }, [activeFile, unsaveFileIds])
 
   /* 关闭消息框 */
-  const closeMessage = () => {
+  const closeMessage = useCallback(() => {
     setMsgCtn('');
-  }
+  }, [])
+
+  /* 打开设置 */
+  const clickSetting = useCallback(() => {
+    setSettingActive(true);
+  }, [])
+
+  /* 关闭设置 */
+  const closeSetting = useCallback(() => {
+    setSettingActive(false);
+  }, [])
 
   useIpcAppMenu('create-new-file', onFileAdd);
   useIpcAppMenu('save-edit-file', onFileSave);
@@ -296,35 +314,52 @@ function App() {
       />
       <div className="row g-0">
         <div className="col-3 left">
-          <FileListSearch
-            searchState={searchState}
-            onFileSearch={onFileSearch}
-          />
-          <FileList
-            files={fileList}
-            onFileClick={onFileClick}
-            onTitleEdit={onTitleEdit}
-            onFileDelete={onFileDelete}
-            onMsgCtn={setMsgCtn}
-          />
           {
-            !searchState &&
-            <div className="row g-0 btn-container">
-              <div className="col">
-                <FileListBtn
-                  title="新建"
-                  className="btn-add"
-                  onBtnClick={onFileAdd}
+            settingActive
+              ? <Setting
+                settingStore={
+                  {
+                    '存储位置': '1',
+                    'AccessKey': 'oMatDFHkTOVIgvO3r5JLP1LDx1za6dblZWHXMjZe',
+                    'SecretKey': 'oMatDFHkTOVIgvO3r5JLP1LDx1za6dblZWHXMjZe',
+                    'Bucket': 'yunmarkdown'
+                  }
+                }
+                closeSetting={closeSetting}
+                onMsgCtn={setMsgCtn}
+              />
+              : <>
+                <FileListSearch
+                  onFileSearch={onFileSearch}
+                  clickSetting={clickSetting}
                 />
-              </div>
-              <div className="col">
-                <FileListBtn
-                  title="导入"
-                  className="btn-import"
-                  onBtnClick={onFileImport}
+                <FileList
+                  files={fileList}
+                  onFileClick={onFileClick}
+                  onTitleEdit={onTitleEdit}
+                  onFileDelete={onFileDelete}
+                  onMsgCtn={setMsgCtn}
                 />
-              </div>
-            </div>
+                {
+                  !searchState &&
+                  <div className="row g-0 btn-container">
+                    <div className="col">
+                      <FileListBtn
+                        title="新建"
+                        className="btn-add"
+                        onBtnClick={onFileAdd}
+                      />
+                    </div>
+                    <div className="col">
+                      <FileListBtn
+                        title="导入"
+                        className="btn-import"
+                        onBtnClick={onFileImport}
+                      />
+                    </div>
+                  </div>
+                }
+              </>
           }
         </div>
         <div className="col-9 right">

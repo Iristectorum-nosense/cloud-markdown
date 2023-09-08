@@ -63,18 +63,4 @@ $reverseActiveColor: #000000;
   .button {
     border-radius: 0 !important;
   }
-
-  .toast {
-    position: fixed;
-    top: 0;
-    left: calc(50% - 250px);
-    width: 500px;
-    max-width: 500px;
-    z-index: 10;
-
-    .toast-header {
-      display: grid;
-      grid-template-columns: 1fr 30px;
-    }
-  }
 }

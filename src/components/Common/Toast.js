@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import './common.scss';
 
 Toast.propTypes = {
   message: PropTypes.string,
