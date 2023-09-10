@@ -22,13 +22,11 @@ app.on('ready', () => {
   });
 
   mainWindow.setMinimumSize(1000, 600);  // 最小窗口大小
-  const urlLocation = isDev ? 'http://localhost:3000' : '';
+  const urlLocation = isDev ? 'http://localhost:3000' : `file://${join(__dirname, './build/index.html')}`;
   mainWindow.loadURL(urlLocation);
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
-
-  mainWindow.webContents.openDevTools();
 
   // 开启 remote
   require('@electron/remote/main').initialize();
