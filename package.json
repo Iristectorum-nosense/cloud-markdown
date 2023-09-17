@@ -38,7 +38,7 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "prepack": "npm run build",
-    "predist": "npm run dist"
+    "predist": "npm run build"
   },
   "build": {
     "appId": "YunMarkDown",
